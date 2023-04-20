@@ -15,6 +15,8 @@ const MODULE_NAME = 'identityLink';
 
 export const storage = getStorageManager({moduleType: MODULE_TYPE_UID, moduleName: MODULE_NAME});
 
+const liverampEnvelopeName = '_lr_env';
+
 /** @type {Submodule} */
 export const identityLinkSubmodule = {
   /**
@@ -74,7 +76,13 @@ export const identityLinkSubmodule = {
           }
         });
       } else {
-        getEnvelope(url, callback, configParams);
+        let envelope = getEnvelopeFromStorage();
+        utils.logInfo('identityLink: LiveRamp envelope successfully retrieved from storage');
+        if (envelope) {
+          callback(JSON.parse(envelope).envelope);
+        } else {
+          getEnvelope(url, callback, configParams);
+        }
       }
     };
 
@@ -119,6 +127,11 @@ function setEnvelopeSource(src) {
   let now = new Date();
   now.setTime(now.getTime() + 2592000000);
   storage.setCookie('_lr_env_src_ats', src, now.toUTCString());
+}
+
+function getEnvelopeFromStorage() {
+  let rawEnvelope = storage.getCookie(liverampEnvelopeName) || storage.getDataFromLocalStorage(liverampEnvelopeName);
+  return window.atob(rawEnvelope);
 }
 
 submodule('userId', identityLinkSubmodule);
