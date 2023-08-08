@@ -76,9 +76,10 @@ export const identityLinkSubmodule = {
           }
         });
       } else {
+        // try to get envelope directly from storage if ats lib is not present on a page
         let envelope = getEnvelopeFromStorage();
-        utils.logInfo('identityLink: LiveRamp envelope successfully retrieved from storage');
         if (envelope) {
+          utils.logInfo('identityLink: LiveRamp envelope successfully retrieved from storage!');
           callback(JSON.parse(envelope).envelope);
         } else {
           getEnvelope(url, callback, configParams);
@@ -135,9 +136,9 @@ function setEnvelopeSource(src) {
   storage.setCookie('_lr_env_src_ats', src, now.toUTCString());
 }
 
-function getEnvelopeFromStorage() {
+export function getEnvelopeFromStorage() {
   let rawEnvelope = storage.getCookie(liverampEnvelopeName) || storage.getDataFromLocalStorage(liverampEnvelopeName);
-  return window.atob(rawEnvelope);
+  return rawEnvelope ? window.atob(rawEnvelope) : undefined;
 }
 
 submodule('userId', identityLinkSubmodule);
